@@ -1,0 +1,28 @@
+name: Build Rubeus
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Build Rubeus
+        run: |
+          msbuild Rubeus.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.6.1
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rubeus.exe
+          path: Rubeus/bin/Release/Rubeus.exe
