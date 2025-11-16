@@ -1,6 +1,7 @@
 name: Build Rubeus
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]  # Or your default branch; adjust as needed
   pull_request:
