@@ -1,31 +1,35 @@
 name: Build Rubeus
 
 on:
-  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [ main ]  # Or your default branch; adjust as needed
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: windows-2019  # Key fix: Has .NET 4.6.1 pre-installed
+    runs-on: windows-latest  # Key fix: Use latest (2022) runner
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4  # Latest version for better perf
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2  # Adds MSBuild to PATH
 
-      - name: Install .NET Framework 4.6.1 Targeting Pack (if needed)
-        shell: pwsh
-        run: |
-          $url = "https://download.microsoft.com/download/0/4/6/046E3F48-6E3F-4C5E-8C2A-0F8F4A4B0F1A/NDP461-KB2639304-x86-x64-AllOS-ENU.exe"
-          Invoke-WebRequest -Uri $url -OutFile "netfx-4.6.1.exe"
-          Start-Process -FilePath "netfx-4.6.1.exe" -ArgumentList "/q /norestart" -Wait
+    # Optional: If you add NuGet deps later
+    # - name: Setup NuGet
+    #   uses: NuGet/setup-nuget@v2
 
-      - name: Build Rubeus
-        run: |
-          msbuild Rubeus.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.6.1 /t:Rebuild
+    - name: Restore packages (if any)
+      run: nuget restore Rubeus.sln
+      # Skip if no packages; Rubeus builds without this
 
-      - name: Upload Rubeus.exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: Rubeus.exe
-          path: Rubeus/bin/Release/Rubeus.exe
+    - name: Build Release
+      run: msbuild Rubeus.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.6.1 /p:Platform="Any CPU" /t:Rebuild
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Rubeus-Release
+        path: bin/Release/Rubeus.exe  # Adjust path if your output differs
