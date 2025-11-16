@@ -1,17 +1,24 @@
 name: Build Rubeus
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019  # Key fix: Has .NET 4.6.1 pre-installed
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Visual Studio Build Tools
+      - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+
+      - name: Install .NET Framework 4.6.1 Targeting Pack (if needed)
+        shell: pwsh
+        run: |
+          $url = "https://download.microsoft.com/download/0/4/6/046E3F48-6E3F-4C5E-8C2A-0F8F4A4B0F1A/NDP461-KB2639304-x86-x64-AllOS-ENU.exe"
+          Invoke-WebRequest -Uri $url -OutFile "netfx-4.6.1.exe"
+          Start-Process -FilePath "netfx-4.6.1.exe" -ArgumentList "/q /norestart" -Wait
 
       - name: Build Rubeus
         run: |
